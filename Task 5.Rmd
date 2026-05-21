@@ -1,0 +1,63 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+df=read.csv(file.choose())
+df
+```
+```{r}
+head(df)
+```
+```{r}
+colnames(df)
+```
+```{r}
+library(tidyverse)
+library(lubridate)
+library(janitor)
+# Convert date
+df$order_date <- as.Date(df$order_date, format="%m/%d/%Y")
+df$month <- format(df$order_date, "%Y-%m")
+
+```
+```{r}
+# Monthly revenue
+df$sales <- as.numeric(gsub(",", "", df$sales))
+df$profit <- as.numeric(gsub(",", "", df$profit))
+
+monthly_sales <- df %>%
+  group_by(month) %>%
+  summarise(revenue = sum(sales, na.rm = TRUE))
+monthly_sales
+```
+```{r}
+# Top products
+top_products <- df %>%
+  group_by(product_name) %>%
+  summarise(total = sum(sales)) %>%
+  arrange(desc(total)) %>%
+  head(10)
+
+ggplot(top_products, aes(x = reorder(product_name, total), y = total)) +
+  geom_col() +
+  coord_flip() +
+  ggtitle("Top 10 Products")
+```
+
+```{r}
+# Profit by category
+profit_cat <- df %>%
+  group_by(category) %>%
+  summarise(profit = sum(profit))
+
+ggplot(profit_cat, aes(x = category, y = profit)) +
+  geom_col() +
+  ggtitle("Profit by Category")
+```
+
